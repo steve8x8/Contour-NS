@@ -1,0 +1,89 @@
+#!/bin/bash
+
+infile=$1
+last=`cat $2`
+outfile=upload_`echo $0 | sed 's~.*csv2~~'`.json
+echo $0 $@: $infile \($last\) to $outfile >&2
+
+(
+echo -n '['
+cat $infile \
+| ruby -e '
+
+after='$last'+0
+
+# CSV parser in Ruby
+# -*- coding: UTF-8 -*-
+require "csv"
+require "pp"
+require "time"
+# from stdin, extract time stamp and insulin amount
+# "#","Datum und Zeit","Messungen [mg/dL]","Mahlzeit-Markierung","Datenquelle","Notizen","Aktivität","Mahlzeit[BE]","Medikament","Ort"
+# "1000","18.11.19 15:20",,"","Manuell","Snack (1.25) Schoko (0.75) = (2)",,"2,00",,
+# "#","Date and Time","Readings [mg/dL]","Meal Marker","Data Source","Notes","Activity","Meal[BE]","Medication","Location"
+# "1000","11/18/19 15:20",,"","Manual","Snack (1.25) Schoko (0.75) = (2)",,"2.00",,
+# attention: strip leading BOM 0xEF 0xBB 0xBF (\uFEFF)
+indx = 0
+data = $stdin.read
+data.force_encoding("binary")
+while data[0].ord > 127
+###    puts data[0].ord
+    data[0] = ""
+    indx += 1
+end
+###$stderr.puts "#{indx} bytes stripped"
+# now parse remaining CSV
+header = []
+data.force_encoding("utf-8")
+csv = CSV.parse(data, encoding: "utf-8")
+csv.each { |row|
+# prepare field names, skip header line
+    if header.empty?
+	header = row.map(&:to_sym)
+	next
+    end
+# use field names
+#    row = Hash[header.zip(row)]
+#    puts row[:Medikament]
+# use field numbers
+# timestamp, convert from local time to UTC
+# Time.parse does not work!
+    ts = Time.now
+# ENglish style
+    if row[1] =~ /(\d+)\/(\d+)\/(\d+) (\d+):(\d+)/
+	ts = Time.local($3.to_i+2000, $1, $2, $4, $5, 0).utc
+# DEutsch
+    elsif row[1] =~ /(\d+)\.(\d+)\.(\d+) (\d+):(\d+)/
+	ts = Time.local($3.to_i+2000, $2, $1, $4, $5, 0).utc
+    end
+    ep = ts.to_i
+    dt = sprintf("%04d-%02d-%02dT%02d:%02d:%02d.000Z", ts.year, ts.month, ts.day, ts.hour, ts.min, ts.sec)
+    if ep <= after
+	next
+    end
+    if row[6] =~ /(.*?)\s+(\d+) min/
+	val = $2.to_i
+	notes = $1
+	if val > 0
+	    printf("%s\t%d\t%3d\t%s\t%s\n", dt, ep, val, "Exercise", notes)
+	end
+    end
+}
+
+' \
+| while read dst dat val type notes
+do
+    notes="${val}"
+    json="{\"eventType\":\"$type\",\"date\":${dat}000,\"created_at\":\"$dst\",\"enteredBy\":\"`basename $0`\",\"duration\":$val,\"notes\":\"$notes\"}"
+    echo $json
+done \
+| sort | uniq \
+| while read line
+do
+    echo ,
+    echo -n "$line"
+done
+echo ""
+echo ']'
+) \
+| sed 's~\[,~[~' > $outfile

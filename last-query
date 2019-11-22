@@ -1,0 +1,25 @@
+#!/bin/bash
+
+#SECRET="MyAPIsecret"
+#SERVER="MyNSinstance"
+#PORT=4711
+. .settings
+SECRETSHA1=`echo -n ${SECRET} | sha1sum - | cut -c1-40`
+
+for WHAT in \
+  carbs \
+  insulin \
+  exercise \
+
+do
+  echo querying $WHAT ...
+  LANG=C \
+  curl \
+    -s \
+    -H "API-SECRET: ${SECRETSHA1}" \
+    -H 'Accept: */*' \
+    -H 'Content-Type: application/json' \
+    "https://${SERVER}:${PORT}/api/v1/treatments.json?find\[created_at\]\[\$gte\]=2019-01-01&find\[enteredBy\]=csv2${WHAT}&count=1" \
+  | sed -e 's~.*"date":\([0-9]*\)000.*~\1~' -e 's~null~0~' \
+  | tee last_${WHAT}
+done
