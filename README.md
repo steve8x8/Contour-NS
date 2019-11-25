@@ -54,3 +54,13 @@ Except that, the Nightscout disclaimer holds: Never ever make medical decisions 
 have been processed through this software. If in doubt, use an approved device - like your trusted BG meter.
 
 For feedback, use the Issues.
+
+## Remarks
+
+- The Contour Next One meter can store up to 800 readings, and has a limit of 64k measurements in total.
+- The Contour Diabetes app keeps only the latest 1000 entries.
+  Blood-glucose measurements, meal recordings, insulin injections, exercise may be combined into a single entry.
+  Nevertheless, with a dozen entries per day, creating a 12-week BGDiary may force-close the app
+  (since the case that the record limit has been reached isn't properly checked for). 
+- All times are in the timezone of the meter, or the smartphone controlling it.
+  Be extra careful when hopping timezones, or during daylight savings switches.
