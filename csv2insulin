@@ -61,11 +61,11 @@ csv.each { |row|
     if ep <= after
 	next
     end
-    if    row[8] =~ /long-acting insulin: ([\d\.]+) [EU]/i
-	val = $1
+    if    row[8] =~ /long-acting insulin: ([\d\.,]+) [EU]/i
+	val = $1.gsub(",", ".").to_f
 	printf("%s\t%d\t%3.1f\t%s\n", dt, ep, val, "Basal")
-    elsif row[8] =~ /fast-acting insulin: ([\d\.]+) [EU]/i
-	val = $1
+    elsif row[8] =~ /fast-acting insulin: ([\d\.,]+) [EU]/i
+	val = $1.gsub(",", ".").to_f
 	printf("%s\t%d\t%3.1f\t%s\n", dt, ep, val, "Bolus")
     end
 }
