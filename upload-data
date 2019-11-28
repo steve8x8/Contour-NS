@@ -31,3 +31,30 @@ do
     2>&1 \
   | tee upload_${WHAT}.log
 done
+
+exit
+# do not upload blood glucose measurements (handled by xDrip)
+
+for WHAT in \
+  bloodg \
+
+do
+  # skip empty uploads
+  if [ `cat upload_${WHAT}.json | wc -l` -le 2 ]
+  then
+    echo empty $WHAT ... skipping.
+    continue
+  fi
+  echo uploading $WHAT ...
+  LANG=C \
+  curl \
+    -v \
+    -X POST \
+    -H "API-SECRET: ${SECRETSHA1}" \
+    -H 'Accept: */*' \
+    -H 'Content-Type: application/json' \
+    "https://${SERVER}:${PORT}/api/v1/entries.json" \
+    --data @upload_${WHAT}.json \
+    2>&1 \
+  | tee upload_${WHAT}.log
+done

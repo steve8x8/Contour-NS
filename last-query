@@ -23,3 +23,22 @@ do
   | sed -e 's~.*"date":\([0-9]*\)000.*~\1~' -e 's~null~0~' \
   | tee last_${WHAT}
 done
+
+exit
+# do not query blood glucose measurements (handled by xDrip)
+
+for WHAT in \
+  bloodg \
+
+do
+  echo querying $WHAT ...
+  LANG=C \
+  curl \
+    -s \
+    -H "API-SECRET: ${SECRETSHA1}" \
+    -H 'Accept: */*' \
+    -H 'Content-Type: application/json' \
+    "https://${SERVER}:${PORT}/api/v1/entries.json?find\[dateString\]\[\$gte\]=2019-01-01&find\[device\]=csv2${WHAT}&count=1" \
+  | sed -e 's~.*"date":\([0-9]*\)000.*~\1~' -e 's~null~0~' \
+  | tee last_${WHAT}
+done

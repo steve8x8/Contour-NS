@@ -19,7 +19,11 @@ ins:
 chs:
 	./csv2carbs    `ls 2>/dev/null -tr ./ContourCSVReport_*.csv | tail -n1` last_carbs
 
-new:	csv last exe ins chs
+# not used (handled by xDrip)
+mbg:
+	./csv2bloodg   `ls 2>/dev/null -tr ./ContourCSVReport_*.csv | tail -n1` last_bloodg
+
+new:	csv last exe ins chs #mbg
 
 up:	.settings
 	./upload-data
@@ -33,4 +37,4 @@ clean:
 	rm -i last_* upload_*
 
 
-.PHONY: csv last exe ins chs new up tar clean
+.PHONY: csv last exe ins chs mbg new up tar clean
