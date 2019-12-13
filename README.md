@@ -31,7 +31,7 @@ Upload data collected by the Contour app (not only the meter) to Nightscout
   (`make new` combines steps 3 through 5.)
 6. `make up` will upload these files.
 7. `make tar` will save the current temporary files.
-8. `make clean` (not yet implemented!) would remove temporary files.
+8. `make clean` removes temporary files.
 9. Rinse and repeat...
 
 ## Caveats

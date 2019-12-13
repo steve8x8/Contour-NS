@@ -34,7 +34,7 @@ tar:
 
 clean:
 	echo not activated yet
-	rm -i last_* upload_*
-
+	rm last_* upload_*
+	rm -i *.csv
 
 .PHONY: csv last exe ins chs mbg new up tar clean
