@@ -3,25 +3,33 @@
 # modify this if your exchange happens somewhere else
 DOWNLD := ~/Downloads
 
-# fetch latest CSV file
+# fetch latest CSV file, do not sort by name!
 csv:
-	cp -pi `ls 2>/dev/null -tr $(DOWNLD)/ContourCSVReport_*.csv | tail -n1` ./ || true
+	cp -pi `ls 2>/dev/null -tr $(DOWNLD)/ContourCSVReport_*.csv | tail -n1` ./Contour.csv || true
 
 last:	.settings
 	./last-query
 
-exe:
-	./csv2exercise `ls 2>/dev/null -tr ./ContourCSVReport_*.csv | tail -n1` last_exercise
+exe:	upload_exercise.json
 
-ins:
-	./csv2insulin  `ls 2>/dev/null -tr ./ContourCSVReport_*.csv | tail -n1` last_insulin
+upload_exercise.json:	Contour.csv last_exercise
+	./csv2exercise ./Contour.csv last_exercise
 
-chs:
-	./csv2carbs    `ls 2>/dev/null -tr ./ContourCSVReport_*.csv | tail -n1` last_carbs
+ins:	upload_insulin.json
+
+upload_insulin.json:	Contour.csv last_insulin
+	./csv2insulin  ./Contour.csv last_insulin
+
+chs:	upload_carbs.json
+
+upload_carbs.json:	Contour.csv last_carbs
+	./csv2carbs    ./Contour.csv last_carbs
 
 # not used (handled by xDrip)
-mbg:
-	./csv2bloodg   `ls 2>/dev/null -tr ./ContourCSVReport_*.csv | tail -n1` last_bloodg
+mbg:	upload_bloodg.json
+
+upload_bloodg.json:	Contour.csv last_bloodg
+	./csv2bloodg   ./Contour.csv last_bloodg
 
 new:	csv last exe ins chs #mbg
 
@@ -33,8 +41,6 @@ tar:
 	tar cf SAVE/all-`date +%Y%m%d-%H%M%S`.tar *.csv last_* upload_*
 
 clean:
-	echo not activated yet
-	rm last_* upload_*
-	rm -i *.csv
+	rm last_* upload_* Contour.csv
 
 .PHONY: csv last exe ins chs mbg new up tar clean
