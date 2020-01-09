@@ -20,6 +20,11 @@ require "time"
 # from stdin, extract time stamp and amount and type of exercise
 # "#","Datum und Zeit","Messungen [mg/dL]","Mahlzeit-Markierung","Datenquelle","Notizen","Aktivität","Mahlzeit[BE]","Medikament","Ort"
 # "#","Date and Time","Readings [mg/dL]","Meal Marker","Data Source","Notes","Activity","Meal[BE]","Medication","Location"
+#
+# activity is "([intensity] )?[description] [minutes] min" where "description" can contain whitespace
+# - no way to strip (optional!) intensity reliably ("Light", "Moderate", etc. or translations)
+# move this text to an extra field ("exercise", not shown in reports unlike "notes") for future use
+#
 # attention: strip leading BOM 0xEF 0xBB 0xBF (\uFEFF)
 indx = 0
 data = $stdin.read
@@ -60,8 +65,10 @@ csv.each { |row|
 	next
     end
     if row[6] =~ /(.*?)\s+(\d+) min/
-	val = $2.to_i
+	# done what?
 	notes = $1
+	# for how long? (max 240 min)
+	val = $2.to_i
 	if val > 0
 	    printf("%s\t%d\t%3d\t%s\t%s\n", dt, ep, val, "Exercise", notes)
 	end
@@ -71,8 +78,8 @@ csv.each { |row|
 ' \
 | while read dst dat val type notes
 do
-#    notes="${val}"
-    json="{\"eventType\":\"$type\",\"date\":${dat}000,\"created_at\":\"$dst\",\"enteredBy\":\"`basename $0`\",\"duration\":$val,\"notes\":\"$notes\"}"
+#    json="{\"eventType\":\"$type\",\"date\":${dat}000,\"created_at\":\"$dst\",\"enteredBy\":\"`basename $0`\",\"duration\":$val,\"notes\":\"$val\"}"
+    json="{\"eventType\":\"$type\",\"date\":${dat}000,\"created_at\":\"$dst\",\"enteredBy\":\"`basename $0`\",\"duration\":$val,\"notes\":\"$val\",\"exercise\":\"$notes\"}"
     echo $json
 done \
 | sort | uniq \
