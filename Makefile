@@ -1,7 +1,12 @@
 #!/usr/bin/make -f
 
 # modify this if your exchange happens somewhere else
+ADBDIR := /sdcard/Download
 DOWNLD := ~/Downloads
+
+# get via cable (otherwise, e.g., drop from cloud)
+adb:
+	(cd $(DOWNLD) && adb shell ls $(ADBDIR)/ContourCSVReport_\*.csv | xargs -t -n1 adb pull -a)
 
 # fetch latest CSV file, do not sort by name!
 csv:
